@@ -20,6 +20,7 @@
 #include "Source.cc"
 #include "StreamSchedule.h"
 #include "StreamSchedule.cc"
+#include <chrono>
 #include <cuda_runtime.h>
 #include <filesystem>
 #include <fstream>
@@ -144,8 +145,13 @@ void BSTest::runToCompletion() {
     auto globalWaitTask = edm::make_empty_waiting_task();
     globalWaitTask->increment_ref_count();
     for (auto& s : fStream) {
+      std::cout << " Running CMSSW 1 " <<std::endl;
+      auto start = std::chrono::high_resolution_clock::now();
       auto pTask = edm::WaitingTaskHolder(globalWaitTask.get());
       s.runToCompletionAsync(pTask);
+      auto finish = std::chrono::high_resolution_clock::now();
+      auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(finish-start);
+      std::cout << " Running CMSSW 2  time in mus " <<  microseconds.count() << "µs" << std::endl;
     }
     globalWaitTask->wait_for_all();
     if (globalWaitTask->exceptionPtr()) {

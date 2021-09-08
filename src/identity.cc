@@ -27,9 +27,13 @@
 #include <memory>
 #include <thread>
 #include "triton/backend/backend_common.h"
+#include "loadbs.cc"
+#include "vector_add.cu"
+
+BSTest* fBSTest;
 
 namespace triton { namespace backend { namespace identity {
-
+ 
 //
 // Simple backend that demonstrates the TRITONBACKEND API for a
 // blocking backend. A blocking backend completes execution of the
@@ -538,6 +542,19 @@ TRITONBACKEND_ModelInstanceInitialize(TRITONBACKEND_ModelInstance* instance)
       TRITONSERVER_ERROR_INVALID_ARG,
       std::string("'identity' backend only supports CPU instances"));
 
+  std::cout << "---> Setting up " << std::endl;
+  fBSTest = new BSTest("data/beamspot.bin");
+  std::cout << " --> setup " << std::endl;
+  std::vector<std::string> lESModules;
+  std::vector<std::string> lEDModules;
+  lESModules = {"BeamSpotESProducer",
+		"SiPixelFedCablingMapGPUWrapperESProducer",
+  		"SiPixelGainCalibrationForHLTGPUESProducer",
+  		"PixelCPEFastESProducer"};
+  lEDModules = {"BeamSpotToCUDA","SiPixelRawToClusterCUDA"};
+  fBSTest->setItAll(0,lESModules,lEDModules);
+  std::cout << "---> Setting up ---> Done " << std::endl;
+  
   return nullptr;  // success
 }
 
@@ -834,10 +851,19 @@ TRITONBACKEND_ModelInstanceExecute(
                   TRITONSERVER_ERROR_UNSUPPORTED,
                   "failed to get input buffer in CPU memory"));
         }
-
+	//BSTest pTmp("data/beamspot.bin");
+	//pTmp.loadBS(0);
+	//pTmp.readDummy();
+	//pTmp.Event();
+	fBSTest->runToCompletion();
+	cms::cuda::host::unique_ptr<uint32_t[]> pTest = fBStest->getOutput();
+	float* input_test = (float*)(input_buffer);
+	float* output_test = new float[(input_shape[0])];
+	vector_add(output_test,input_test,input_test,(input_shape[0]));
+	
         memcpy(
-            reinterpret_cast<char*>(output_buffer) + output_buffer_offset,
-            input_buffer, buffer_byte_size);
+	       reinterpret_cast<char*>(output_buffer) + output_buffer_offset,
+            output_test, buffer_byte_size);
         output_buffer_offset += buffer_byte_size;
       }
 

@@ -62,7 +62,7 @@ public:
   void Event();
   void setItAll(unsigned int iId,std::vector<std::string> const& esproducers,std::vector<std::string> runs);  
   void runToCompletion();
-  cms::cuda::host::unique_ptr<uint32_t[]> BSTest::getOutput();
+  cms::cuda::host::unique_ptr<uint32_t[]> getOutput();
 
 private:
   std::string data_;
@@ -161,7 +161,7 @@ cms::cuda::host::unique_ptr<uint32_t[]> BSTest::getOutput() {
   globalWaitTask->increment_ref_count();
   //for (auto& s : fStream) {
   auto pTask = edm::WaitingTaskHolder(globalWaitTask.get());
-  out.get() = fStream[0].processOneEvent(pTast);
+  out = fStream[0].processOneEvent(pTask);
   //}
   globalWaitTask->wait_for_all();
   if (globalWaitTask->exceptionPtr()) {

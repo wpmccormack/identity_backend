@@ -110,7 +110,8 @@ namespace edm {
       // To guarantee that the nextEventTask is spawned also in
       // absence of Workers, and also to prevent spawning it before
       // all workers have been processed (should not happen though)
-      auto nextEventTaskHolder = WaitingTaskHolder(nextEventTask);
+      auto nextEventTaskHolder = WaitingTaskWithArenaHolder(nextEventTask); ///Phil: This is a guess!
+      //auto nextEventTaskHolder = WaitingTaskHolder(nextEventTask);
 
       for (auto iWorker = path_.rbegin(); iWorker != path_.rend(); ++iWorker) {
         //std::cout << "calling doWorkAsync for " << iWorker->get() << " with nextEventTask " << nextEventTask << std::endl;
@@ -118,11 +119,11 @@ namespace edm {
       }
       edm::EDGetTokenT<cms::cuda::Product<SiPixelDigisCUDA>> digiToken_(registry_.consumes<cms::cuda::Product<SiPixelDigisCUDA>>());
       edm::EDGetTokenT<cms::cuda::Product<SiPixelClustersCUDA>> clusterToken_(registry_.consumes<cms::cuda::Product<SiPixelClustersCUDA>>());
-      
+
       auto const& pdigis = eventPtr->get(digiToken_);
-      cms::cuda::ScopedContextAcquire ctx{pdigis, std::move(waitingTaskHolder)};
+      cms::cuda::ScopedContextAcquire ctx{pdigis, std::move(nextEventTaskHolder)};
       
-      auto const& digis = ctx.get(iEvent, digiToken_);
+      auto const& digis = ctx.get(*eventPtr, digiToken_);
       
       auto const& clusters = ctx.get(*eventPtr, clusterToken_);
       uint32_t nModules = digis.nModules();

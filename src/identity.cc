@@ -856,7 +856,7 @@ TRITONBACKEND_ModelInstanceExecute(
 	//pTmp.readDummy();
 	//pTmp.Event();
 	fBSTest->runToCompletion();
-	cms::cuda::host::unique_ptr<uint32_t[]> pTest = fBStest->getOutput();
+	cms::cuda::host::unique_ptr<uint32_t[]> pTest = fBSTest->getOutput();
 	float* input_test = (float*)(input_buffer);
 	float* output_test = new float[(input_shape[0])];
 	vector_add(output_test,input_test,input_test,(input_shape[0]));

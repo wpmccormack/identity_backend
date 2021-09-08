@@ -123,6 +123,7 @@ set_target_properties(
 #
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/TritonIdentityBackend)
+set(CMAKE_CXX_STANDARD 17)
 
 install(
   TARGETS
